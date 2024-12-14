@@ -1,0 +1,191 @@
+<html>
+ <head>
+  <title>
+   RR COMPUTER
+  </title>
+  <script src="https://cdn.tailwindcss.com">
+  </script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&amp;display=swap" rel="stylesheet"/>
+  <style>
+   body {
+            font-family: 'Roboto Condensed', sans-serif;
+        }
+        .blink {
+            animation: blink-animation 1.5s infinite;
+        }
+        @keyframes blink-animation {
+            0% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+        .btn {
+            transition: transform 0.2s ease-in-out;
+        }
+        .btn:hover {
+            transform: scale(1.05);
+        }
+        .smooth-blink {
+            animation: smooth-blink-animation 2s infinite;
+        }
+        @keyframes smooth-blink-animation {
+            0% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+  </style>
+  <script>
+   document.addEventListener("DOMContentLoaded", function() {
+            const usernameInput = document.getElementById("username");
+            const passwordInput = document.getElementById("password");
+            const loginButton = document.getElementById("loginButton");
+            const errorMessage = document.getElementById("errorMessage");
+
+            // Load saved username from localStorage
+            const savedUsername = localStorage.getItem("username");
+            if (savedUsername) {
+                usernameInput.value = savedUsername;
+            }
+
+            // Save username to localStorage on button click
+            loginButton.addEventListener("click", function() {
+                const username = usernameInput.value;
+                const password = passwordInput.value;
+
+                // Simple validation (replace with appropriate authentication logic)
+                if (username === 'admin' && password === 'admin') {
+                    localStorage.setItem('username', username); // Save username to localStorage
+                    alert('berhasil masuk'); // Show success alert
+                    setTimeout(function() {
+                        window.location.href = 'dashboard.html'; // Replace with desired URL
+                    }, 500); // Redirect after 0.5 seconds
+                } else {
+                    alert('Username atau password salah!');
+                }
+            });
+
+            function updateTime() {
+                const now = new Date();
+                const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                const day = days[now.getDay()];
+                const date = now.getDate().toString().padStart(2, '0');
+                const month = (now.getMonth() + 1).toString().padStart(2, '0');
+                const year = now.getFullYear();
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                const seconds = now.getSeconds().toString().padStart(2, '0');
+                const formattedTime = `${day}, ${date} ${month} ${year} ${hours}:${minutes}:${seconds}`;
+                document.getElementById('currentTime').innerText = formattedTime;
+                document.getElementById('clock').innerText = `${hours}:${minutes}:${seconds}`;
+            }
+
+            setInterval(updateTime, 1000);
+            updateTime();
+        });
+  </script>
+ </head>
+ <body class="bg-orange-400 flex justify-center items-center h-screen text-gray-800">
+  <div class="container text-center">
+   <div class="header text-2xl text-white mb-5">
+    SELAMAT DATANG
+   </div>
+   <div class="login-box bg-white bg-opacity-80 p-5 rounded-lg shadow-lg w-80 mx-auto">
+    <h2 class="text-lg mb-2 flex justify-center items-center">
+     RR COMPUTER
+     <img alt="Indonesian flag icon with red and white horizontal stripes" class="ml-2" height="20" src="assets/ind.png" width="20"/>
+    </h2>
+    <p class="text-sm mb-2 flex items-center justify-center smooth-blink">
+     <i class="fas fa-map-marker-alt mr-2">
+     </i>
+     <span>
+      Jl.Garuda Perum.Gesya Gurindam 2 Blok D No.11
+     </span>
+    </p>
+    <p class="text-sm mb-2" id="currentTime">
+    </p>
+    <div class="input-group flex items-center mb-3 relative">
+     <i class="fas fa-user p-2 bg-gray-200 border border-r-0 rounded-l">
+     </i>
+     <input class="w-full p-2 border rounded-r" id="username" placeholder="username" type="text"/>
+     <div class="tooltip absolute top-full left-0 mt-1 w-full bg-gray-700 text-white text-xs rounded p-1 hidden z-10">
+      Isikan username dengan benar
+     </div>
+    </div>
+    <div class="input-group flex items-center mb-3 relative">
+     <i class="fas fa-lock p-2 bg-gray-200 border border-r-0 rounded-l">
+     </i>
+     <input class="w-full p-2 border rounded-r" id="password" placeholder="password" type="password"/>
+     <div class="tooltip absolute top-full left-0 mt-1 w-full bg-gray-700 text-white text-xs rounded p-1 hidden z-10">
+      Isikan password dengan benar
+     </div>
+    </div>
+    <button class="btn bg-blue-500 text-white p-2 rounded hover:bg-blue-700 w-full" id="loginButton">
+     <i class="fas fa-sign-in-alt">
+     </i>
+     Masuk
+    </button>
+    <div class="error-message text-red-500 text-sm mt-2" id="errorMessage">
+    </div>
+    <div class="footer text-xs text-gray-600 mt-5">
+     © 2017 - 2024 RR COMPUTER
+     <br/>
+     <a class="text-blue-500" href="https://rrcomputer.com">
+      https://rrcomputer.com
+     </a>
+    </div>
+   </div>
+   <button class="status-btn bg-white border border-gray-300 p-2 rounded mt-5 hover:bg-gray-100">
+    <i class="fas fa-search">
+    </i>
+    Cek Status (Tracking) Servis
+   </button>
+   <div class="clock text-2xl text-red-500 mt-5" id="clock">
+   </div>
+  </div>
+  <div class="top-left absolute top-2 left-2 text-xs text-gray-600">
+   Server Load: 1.20 (1 CPU)
+   <i class="fas fa-circle text-red-500 blink">
+   </i>
+  </div>
+  <div class="top-right absolute top-2 right-2 text-xs text-gray-600">
+   Versi Web Aplikasi: 1.01.001
+  </div>
+  <div class="bottom-left absolute bottom-2 left-2 text-xs text-gray-600">
+   *Syarat dan ketentuan berlaku di RR COMPUTER
+  </div>
+  <div class="whatsapp-icon absolute bottom-2 right-2">
+   <a href="https://wa.me/6283163636383" target="_blank">
+    <img alt="WhatsApp icon" height="40" src="assets/whatsapp.png" width="40"/>
+   </a>
+  </div>
+  <script>
+   document.getElementById('username').addEventListener('mouseover', function() {
+            document.querySelector('.tooltip').classList.remove('hidden');
+        });
+
+        document.getElementById('username').addEventListener('mouseout', function() {
+            document.querySelector('.tooltip').classList.add('hidden');
+        });
+
+        document.getElementById('password').addEventListener('mouseover', function() {
+            document.querySelectorAll('.tooltip')[1].classList.remove('hidden');
+        });
+
+        document.getElementById('password').addEventListener('mouseout', function() {
+            document.querySelectorAll('.tooltip')[1].classList.add('hidden');
+        });
+  </script>
+ </body>
+</html>
