@@ -1,0 +1,350 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Pelanggan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"></link>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto Condensed', sans-serif;
+        }
+        .button-clicked {
+            transform: scale(0.95);
+        }
+        .whatsapp-input {
+            border-color: #25D366;
+            color: #25D366;
+        }
+        .star {
+            cursor: pointer;
+            color: #d1d5db; /* Tailwind's gray-300 */
+        }
+        .star.selected {
+            color: #fbbf24; /* Tailwind's yellow-400 */
+        }
+        .alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #f87171; /* Tailwind's red-400 */
+            color: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        .delete-btn {
+            cursor: pointer;
+            color: #f87171; /* Tailwind's red-400 */
+            transition: color 0.3s;
+        }
+        .delete-btn:hover {
+            color: #dc2626; /* Tailwind's red-600 */
+        }
+        .confirm-delete {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: none;
+            z-index: 1000;
+        }
+        .confirm-delete button {
+            margin: 0 0.5rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">Data Pelanggan</h1>
+        <div class="flex justify-between mb-6">
+            <div class="flex space-x-2">
+                <button id="backToDashboardBtn" class="bg-red-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-red-700 transition duration-300 transform active:scale-95">
+                    <i class="fas fa-arrow-left mr-1"></i>Kembali ke Dashboard
+                </button>
+                <button id="customerListBtn" class="bg-green-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-green-700 transition duration-300 transform active:scale-95">
+                    <i class="fas fa-list mr-1"></i>Daftar Pelanggan (<span id="customerCount">0</span>)
+                </button>
+                <button id="addCustomerBtn" class="bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-blue-700 transition duration-300 transform active:scale-95">
+                    <i class="fas fa-plus mr-1"></i>Tambah Pelanggan Baru
+                </button>
+                <div class="relative flex items-center">
+                    <input type="text" id="searchWhatsapp" placeholder="Cari Nomor WhatsApp" class="bg-gray-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-gray-700 transition duration-300 transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-gray-700">
+                    <button id="searchCustomerBtn" class="absolute right-0 top-0 bottom-0 bg-gray-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-gray-700 transition duration-300 transform active:scale-95">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+            <button id="exportExcelBtn" class="bg-yellow-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-yellow-700 transition duration-300 transform active:scale-95">
+                <i class="fas fa-file-excel mr-1"></i>Export ke Excel
+            </button>
+        </div>
+        <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+            <table class="min-w-full bg-white">
+                <thead class="bg-blue-500 text-white">
+                    <tr>
+                        <th class="w-1/5 py-4 px-6 uppercase font-semibold text-sm text-left">Nama</th>
+                        <th class="w-1/5 py-4 px-6 uppercase font-semibold text-sm text-left">Kategori</th>
+                        <th class="w-1/5 py-4 px-6 uppercase font-semibold text-sm text-left">Telepon</th>
+                        <th class="w-1/5 py-4 px-6 uppercase font-semibold text-sm text-left">WhatsApp</th>
+                        <th class="w-1/5 py-4 px-6 uppercase font-semibold text-sm text-left">Rating</th>
+                        <th class="w-1/5 py-4 px-6 uppercase font-semibold text-sm text-left">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="customerTableBody" class="text-gray-700">
+                    <!-- Data pelanggan akan ditambahkan di sini -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg shadow-lg p-6 w-1/3">
+            <h2 class="text-2xl font-bold mb-4">Tambah Pelanggan Baru</h2>
+            <form id="customerForm">
+                <div class="mb-4">
+                    <label for="name" class="block text-gray-700">Nama</label>
+                    <input type="text" id="name" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-4">
+                    <label for="kategori" class="block text-gray-700">Kategori</label>
+                    <select id="kategori" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <option value="">Pilih Kategori</option>
+                        <option value="User">User</option>
+                        <option value="Kantor/Toko">Kantor/Toko</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="phone" class="block text-gray-700">Telepon</label>
+                    <div class="flex items-center">
+                        <input type="text" id="phone" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        <button type="button" id="copyPhoneBtn" class="ml-2 text-blue-500 hover:text-blue-700 transition duration-300">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label for="whatsapp" class="block text-gray-700">WhatsApp</label>
+                    <div class="flex items-center">
+                        <i class="fab fa-whatsapp text-green-500 mr-2"></i>
+                        <input type="text" id="whatsapp" class="w-full px-4 py-2 border whatsapp-input rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" required>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label for="rating" class="block text-gray-700">Rating</label>
+                    <div id="rating" class="flex">
+                        <i class="fas fa-star star" data-value="1"></i>
+                        <i class="fas fa-star star" data-value="2"></i>
+                        <i class="fas fa-star star" data-value="3"></i>
+                        <i class="fas fa-star star" data-value="4"></i>
+                        <i class="fas fa-star star" data-value="5"></i>
+                    </div>
+                </div>
+                <div class="flex justify-end">
+                    <button type="button" id="cancelBtn" class="bg-gray-500 text-white px-4 py-2 rounded-lg mr-2 hover:bg-gray-700 transition duration-300 transform active:scale-95">Batal</button>
+                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300 transform active:scale-95">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Alert Box -->
+    <div id="alertBox" class="alert">
+        Nomor WhatsApp tidak ditemukan!
+    </div>
+
+    <!-- Confirm Delete Box -->
+    <div id="confirmDeleteBox" class="confirm-delete">
+        <p>Apakah Anda yakin akan menghapus pelanggan ini?</p>
+        <div class="flex justify-center mt-4">
+            <button id="confirmDeleteBtn" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition duration-300 transform active:scale-95">Hapus</button>
+            <button id="cancelDeleteBtn" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition duration-300 transform active:scale-95">Batal</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCustomersFromLocalStorage();
+        });
+
+        document.getElementById('backToDashboardBtn').addEventListener('click', function() {
+            window.location.href = 'dashboard.html';
+        });
+
+        document.getElementById('addCustomerBtn').addEventListener('click', function() {
+            document.getElementById('modal').classList.remove('hidden');
+        });
+
+        document.getElementById('cancelBtn').addEventListener('click', function() {
+            document.getElementById('modal').classList.add('hidden');
+        });
+
+        document.getElementById('copyPhoneBtn').addEventListener('click', function() {
+            const phoneValue = document.getElementById('phone').value;
+            document.getElementById('whatsapp').value = '62' + phoneValue.replace(/^0+/, '');
+        });
+
+        let selectedRating = 0;
+        document.querySelectorAll('.star').forEach(star => {
+            star.addEventListener('click', function() {
+                selectedRating = this.getAttribute('data-value');
+                document.querySelectorAll('.star').forEach(s => {
+                    s.classList.remove('selected');
+                });
+                for (let i = 0; i < selectedRating; i++) {
+                    document.querySelectorAll('.star')[i].classList.add('selected');
+                }
+            });
+        });
+
+        document.getElementById('customerForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value;
+            const kategori = document.getElementById('kategori').value;
+            const phone = document.getElementById('phone').value;
+            const whatsapp = document.getElementById('whatsapp').value;
+
+            const newRow = document.createElement('tr');
+            newRow.classList.add('hover:bg-gray-100', 'transition', 'duration-300');
+            newRow.innerHTML = `
+                <td class="w-1/5 py-4 px-6 text-left">${name}</td>
+                <td class="w-1/5 py-4 px-6 text-left">${kategori}</td>
+                <td class="w-1/5 py-4 px-6 text-left">${phone}</td>
+                <td class="w-1/5 py-4 px-6 text-left">
+                    <a href="https://wa.me/${whatsapp}" target="_blank" class="text-green-500 hover:text-green-700 transition duration-300">
+                        ${whatsapp}
+                    </a>
+                </td>
+                <td class="w-1/5 py-4 px-6 text-left">
+                    ${[...Array(5)].map((_, i) => `<i class="fas fa-star ${i < selectedRating ? 'text-yellow-400' : 'text-gray-300'}"></i>`).join('')}
+                </td>
+                <td class="w-1/5 py-4 px-6 text-left">
+                    <i class="fas fa-trash delete-btn"></i>
+                </td>
+            `;
+
+            document.getElementById('customerTableBody').appendChild(newRow);
+            saveCustomerToLocalStorage({ name, kategori, phone, whatsapp, rating: selectedRating });
+            updateCustomerCount();
+            document.getElementById('modal').classList.add('hidden');
+            document.getElementById('customerForm').reset();
+            document.querySelectorAll('.star').forEach(star => star.classList.remove('selected'));
+            selectedRating = 0;
+
+            // Add delete event listener
+            newRow.querySelector('.delete-btn').addEventListener('click', function() {
+                showConfirmDelete(newRow, { name, kategori, phone, whatsapp, rating: selectedRating });
+            });
+        });
+
+        document.getElementById('searchCustomerBtn').addEventListener('click', function() {
+            const searchWhatsapp = document.getElementById('searchWhatsapp').value;
+            const rows = document.querySelectorAll('#customerTableBody tr');
+            let found = false;
+            rows.forEach(row => {
+                const whatsappCell = row.children[3].textContent.trim();
+                if (whatsappCell.includes(searchWhatsapp)) {
+                    row.style.display = '';
+                    found = true;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            if (!found) {
+                showAlert();
+            }
+        });
+
+        document.getElementById('exportExcelBtn').addEventListener('click', function() {
+            const table = document.getElementById('customerTableBody');
+            const rows = Array.from(table.rows).map(row => Array.from(row.cells).map(cell => cell.textContent.trim()));
+            const headers = ['Nama', 'Kategori', 'Telepon', 'WhatsApp', 'Rating'];
+            const data = [headers, ...rows];
+            const worksheet = XLSX.utils.aoa_to_sheet(data);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Data Pelanggan');
+            XLSX.writeFile(workbook, 'data_pelanggan.xlsx');
+        });
+
+        function updateCustomerCount() {
+            const customerCount = document.getElementById('customerTableBody').children.length;
+            document.getElementById('customerCount').textContent = customerCount;
+        }
+
+        function showAlert() {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.style.display = 'block';
+            setTimeout(() => {
+                alertBox.style.display = 'none';
+            }, 3000);
+        }
+
+        function saveCustomerToLocalStorage(customer) {
+            let customers = JSON.parse(localStorage.getItem('customers')) || [];
+            customers.push(customer);
+            localStorage.setItem('customers', JSON.stringify(customers));
+        }
+
+        function loadCustomersFromLocalStorage() {
+            let customers = JSON.parse(localStorage.getItem('customers')) || [];
+            customers.forEach(customer => {
+                const newRow = document.createElement('tr');
+                newRow.classList.add('hover:bg-gray-100', 'transition', 'duration-300');
+                newRow.innerHTML = `
+                    <td class="w-1/5 py-4 px-6 text-left">${customer.name}</td>
+                    <td class="w-1/5 py-4 px-6 text-left">${customer.kategori}</td>
+                    <td class="w-1/5 py-4 px-6 text-left">${customer.phone}</td>
+                    <td class="w-1/5 py-4 px-6 text-left">
+                        <a href="https://wa.me/${customer.whatsapp}" target="_blank" class="text-green-500 hover:text-green-700 transition duration-300">
+                            ${customer.whatsapp}
+                        </a>
+                    </td>
+                    <td class="w-1/5 py-4 px-6 text-left">
+                        ${[...Array(5)].map((_, i) => `<i class="fas fa-star ${i < customer.rating ? 'text-yellow-400' : 'text-gray-300'}"></i>`).join('')}
+                    </td>
+                    <td class="w-1/5 py-4 px-6 text-left">
+                        <i class="fas fa-trash delete-btn"></i>
+                    </td>
+                `;
+                document.getElementById('customerTableBody').appendChild(newRow);
+
+                // Add delete event listener
+                newRow.querySelector('.delete-btn').addEventListener('click', function() {
+                    showConfirmDelete(newRow, customer);
+                });
+            });
+            updateCustomerCount();
+        }
+
+        function showConfirmDelete(row, customer) {
+            const confirmDeleteBox = document.getElementById('confirmDeleteBox');
+            confirmDeleteBox.style.display = 'block';
+
+            document.getElementById('confirmDeleteBtn').onclick = function() {
+                deleteCustomer(row, customer);
+                confirmDeleteBox.style.display = 'none';
+            };
+
+            document.getElementById('cancelDeleteBtn').onclick = function() {
+                confirmDeleteBox.style.display = 'none';
+            };
+        }
+
+        function deleteCustomer(row, customer) {
+            row.remove();
+            let customers = JSON.parse(localStorage.getItem('customers')) || [];
+            customers = customers.filter(c => c.phone !== customer.phone);
+            localStorage.setItem('customers', JSON.stringify(customers));
+            updateCustomerCount();
+        }
+    </script>
+</body>
+</html>
